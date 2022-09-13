@@ -28,8 +28,18 @@ async function run() {
     app.get("/task", async (req, res) => {
       const query = {};
       const cursor = taskCollection.find(query);
-      const alltaskfromdb = await cursor.toArray();
-      res.send(alltaskfromdb);
+      const tasklistfromdb = await cursor.toArray();
+      res.send(tasklistfromdb);
+    });
+
+    // ! receiving post method data from client side & ADD to Db
+
+    app.post("/task", async (req, res) => {
+      const taskdata = req.body;
+
+      // ADD single data to DATABASE
+      const result = await taskCollection.insertOne(taskdata);
+      res.send(result);
     });
   } finally {
     //  client.close();
