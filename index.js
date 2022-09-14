@@ -3,7 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 8000;
 
 //MiddleWare
 app.use(cors()); //! For avoiding cors policy error
@@ -21,10 +21,12 @@ const client = new MongoClient(uri, {
 //Async function to connect & Operate mongo
 async function run() {
   try {
+    //connecting mongodb
     await client.connect();
     const taskCollection = client.db("taskmanagerDb").collection("tasklist");
 
     // ! Loading or Creating own server api READ data from Mongodb
+
     app.get("/task", async (req, res) => {
       const query = {};
       const cursor = taskCollection.find(query);
@@ -47,6 +49,35 @@ async function run() {
       const id = req.params.id;
       const query = { _id: ObjectId(id) };
       const result = await taskCollection.deleteOne(query);
+      res.send(result);
+    });
+
+    //! Read A specific Document from DB by id
+    app.get("/task/:id", async (req, res) => {
+      const specificDoc = req.params.id;
+      const query = { _id: ObjectId(specificDoc) };
+      const result = await taskCollection.findOne(query);
+      res.send(result);
+    });
+
+    //! UPDATE A SPECIFIC DATA
+    app.put("/task/:id", async (req, res) => {
+      const id = req.params.id;
+      const updatedBody = req.body;
+
+      const filter = { _id: ObjectId(id) };
+      const options = { upsert: true };
+
+      const updatedDoc = {
+        $set: updatedBody,
+        // taskName: updatedBody.taskName,
+        // taskSerial: updatedBody.taskSerial,
+      };
+      const result = await taskCollection.updateOne(
+        filter,
+        updatedDoc,
+        options
+      );
       res.send(result);
     });
   } finally {
